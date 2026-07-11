@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; background: transparent; font-family: 'Sarabun', sans-serif; }
+        .cert-container { position: relative; width: 100%; max-width: 600px; aspect-ratio: 4 / 3; background-size: cover; background-position: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .name-display { position: absolute; width: 100%; text-align: center; top: 46%; left: 0; font-size: 28px; font-weight: bold; color: #2c3e50; }
+        button { margin-top: 15px; padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="cert-container" id="certBg">
+        <div id="displayName" class="name-display">กำลังโหลด...</div>
+    </div>
+    <button onclick="window.print()">บันทึกเป็น PDF / พิมพ์</button>
+
+    <script>
+        window.onload = function() {
+            // 1. ดึงชื่อผู้เล่นที่บันทึกไว้
+            var savedName = localStorage.getItem('player_name_shared');
+            document.getElementById('displayName').innerText = savedName ? savedName : "ผู้เข้าร่วมกิจกรรม";
+
+            // 2. เช็คว่าด่านอะไรจาก URL เพื่อเปลี่ยนรูปพื้นหลัง
+            const urlParams = new URLSearchParams(window.location.search);
+            const stage = urlParams.get('stage'); // ดึงค่าเลขด่านมา
+            
+            var bgImage = 'cert-default.png'; // รูปเริ่มต้นเผื่อผิดพลาด
+
+            // ใส่ลิงก์รูปภาพเกียรติบัตรของแต่ละด่านตรงนี้
+            if (stage === '1') bgImage = 'ลิงก์รูปด่าน_1.png';
+            if (stage === '2') bgImage = 'ลิงก์รูปด่าน_2.png';
+            if (stage === '3') bgImage = 'ลิงก์รูปด่าน_3.png';
+            if (stage === '4') bgImage = 'ลิงก์รูปด่าน_4.png';
+            if (stage === '5') bgImage = 'ลิงก์รูปด่าน_5.png';
+            if (stage === '6') bgImage = 'ลิงก์รูปด่าน_6.png';
+
+            document.getElementById('certBg').style.backgroundImage = "url('" + bgImage + "')";
+        };
+    </script>
+</body>
+</html>
