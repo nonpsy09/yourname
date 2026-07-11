@@ -2,67 +2,72 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; background: transparent; font-family: 'Sarabun', sans-serif; }
-        .cert-container { position: relative; width: 100%; max-width: 600px; aspect-ratio: 4 / 3; background-size: cover; background-position: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .name-display { position: absolute; width: 100%; text-align: center; top: 46%; left: 0; font-size: 28px; font-weight: bold; color: #2c3e50; }
-        button { margin-top: 15px; padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-    @media print {
-  body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  .cert-container {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  /* ซ่อนปุ่มกดพิมพ์เวลาสั่งปริ้นหรือเซฟ PDF */
-  button {
-    display: none !important;
-  }
-}
-        /* โค้ดนี้จะทำงานเฉพาะตอนเปิดในมือถือ */
-@media screen and (max-width: 768px) {
-  .cert-container {
-    max-width: 100%; /* ปรับใบประกาศให้พอดีหน้าจอมือถือ */
-    font-size: 14px;  /* ปรับขนาดตัวอักษรลดลงตามสัดส่วนหน้าจอ */
-  }
-  .player-name-display {
-    font-size: 18px; /* ปรับขนาดชื่อบนมือถือไม่ให้ใหญ่เกินไป */
-  }
-}
-
-/* โค้ดบังคับให้ดึงภาพพื้นหลังมาตอนกดพิมพ์/เซฟ PDF (ใส่เพิ่มจากรอบที่แล้ว) */
-@media print {
-  body, .cert-container {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  button {
-    display: none !important; /* ซ่อนปุ่มกดตอนเซฟ PDF */
-  }
-}
+        
+        /* กรอบเกียรติบัตร */
+        .cert-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            aspect-ratio: 4 / 3; 
+            background-size: cover; 
+            background-position: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+        }
+        
+        /* ตำแหน่งของชื่อผู้เล่น บนแผ่นเกียรติบัตร */
+        .name-display { 
+            position: absolute; 
+            width: 100%; 
+            text-align: center; 
+            top: 46%; /* <--- สามารถปรับให้ตรงช่องว่างของเกียรติบัตรได้ */
+            left: 0; 
+            font-size: 28px; 
+            font-weight: bold; 
+            color: #2c3e50; 
+        }
+        
+        /* ปุ่มดาวน์โหลดรูปภาพ */
+        button { 
+            margin-top: 15px; 
+            padding: 12px 25px; 
+            background: #27ae60; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 16px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        button:hover { background: #219653; }
     </style>
 </head>
 <body>
-    <div class="cert-container" id="certBg">
+
+    <div id="captureArea" class="cert-container">
         <div id="displayName" class="name-display">กำลังโหลด...</div>
     </div>
-    <button onclick="window.print()">บันทึกเป็น PDF / พิมพ์</button>
+    
+    <button onclick="downloadCertificate()">ดาวน์โหลดเป็นไฟล์รูปภาพ</button>
 
     <script>
         window.onload = function() {
-            // 1. ดึงชื่อผู้เล่นที่บันทึกไว้
+            // 1. ดึงชื่อผู้เล่นที่บันทึกมาจากหน้าแรก
             var savedName = localStorage.getItem('player_name_shared');
             document.getElementById('displayName').innerText = savedName ? savedName : "ผู้เข้าร่วมกิจกรรม";
 
-            // 2. เช็คว่าด่านอะไรจาก URL เพื่อเปลี่ยนรูปพื้นหลัง
+            // 2. ดึงค่าเลขด่านจาก URL ปลายทาง เช่น ?stage=1
             const urlParams = new URLSearchParams(window.location.search);
-            const stage = urlParams.get('stage'); // ดึงค่าเลขด่านมา
+            const stage = urlParams.get('stage');
             
-            var bgImage = 'cert-default.png'; // รูปเริ่มต้นเผื่อผิดพลาด
+            // ตั้งค่ารูปเริ่มต้นเผื่อดึงข้อมูลด่านไม่ได้
+            var bgImage = 'bg1.png'; 
 
-            // ใส่ลิงก์รูปภาพเกียรติบัตรของแต่ละด่านตรงนี้
+            // 3. ตรวจสอบเลขด่านเพื่อเปลี่ยนรูปภาพ (อิงตามชื่อไฟล์รูปภาพที่คุณอัปโหลดไว้บน GitHub)
             if (stage === '1') bgImage = 'bg1.png';
             if (stage === '2') bgImage = 'bg2.png';
             if (stage === '3') bgImage = 'bg3.png';
@@ -70,8 +75,24 @@
             if (stage === '5') bgImage = 'bg5.png';
             if (stage === '6') bgImage = 'bg6.png';
 
-            document.getElementById('certBg').style.backgroundImage = "url('" + bgImage + "')";
+            // แสดงผลรูปพื้นหลังของด่านนั้นๆ
+            document.getElementById('captureArea').style.backgroundImage = "url('" + bgImage + "')";
         };
+
+        // ฟังก์ชันแคปหน้าจอแล้วดาวน์โหลดเป็นรูปภาพ (.png)
+        function downloadCertificate() {
+            var element = document.getElementById("captureArea");
+            html2canvas(element, {
+                useCORS: true,
+                allowTaint: true,
+                scale: 2 // เพิ่มความคมชัดชัดเจนคูณสอง
+            }).then(function(canvas) {
+                var link = document.createElement('a');
+                link.download = 'certificate.png';
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
     </script>
 </body>
 </html>
