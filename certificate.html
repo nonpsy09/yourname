@@ -3,11 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
     <style>
         body { margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; background: transparent; font-family: 'Sarabun', sans-serif; }
-        
-        /* กรอบเกียรติบัตร */
         .cert-container { 
             position: relative; 
             width: 100%; 
@@ -17,22 +15,18 @@
             background-position: center; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
         }
-        
-        /* ตำแหน่งของชื่อผู้เล่น บนแผ่นเกียรติบัตร */
         .name-display { 
             position: absolute; 
             width: 100%; 
             text-align: center; 
-            top: 46%; /* <--- สามารถปรับให้ตรงช่องว่างของเกียรติบัตรได้ */
+            top: 46%; 
             left: 0; 
             font-size: 28px; 
             font-weight: bold; 
             color: #2c3e50; 
         }
-        
-        /* ปุ่มดาวน์โหลดรูปภาพ */
+        .btn-zone { margin-top: 15px; display: flex; gap: 10px; }
         button { 
-            margin-top: 15px; 
             padding: 12px 25px; 
             background: #27ae60; 
             color: white; 
@@ -41,9 +35,13 @@
             cursor: pointer; 
             font-weight: bold; 
             font-size: 16px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        button:hover { background: #219653; }
+        button.preview-btn { background: #2f80ed; }
+        
+        /* โซนแสดงรูปภาพสำหรับกดค้างเซฟบนมือถือ */
+        #resultImageZone { display: none; margin-top: 15px; text-align: center; }
+        #resultImageZone img { width: 100%; max-width: 600px; border: 2px solid #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .hint { color: #555; font-size: 14px; margin-top: 5px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -52,22 +50,25 @@
         <div id="displayName" class="name-display">กำลังโหลด...</div>
     </div>
     
-    <button onclick="downloadCertificate()">ดาวน์โหลดเป็นไฟล์รูปภาพ</button>
+    <div class="btn-zone" id="btnZone">
+        <button onclick="downloadCertificate()">ดาวน์โหลดรูปภาพ</button>
+        <button class="preview-btn" onclick="generateImageForMobile()">แสดงรูปสำหรับมือถือ</button>
+    </div>
+
+    <div id="resultImageZone">
+        <p class="hint">👇 ใช้มือถือเปิด: ให้กดค้างที่รูปภาพด้านล่างนี้ แล้วเลือก "บันทึกรูปภาพ" (Save Image) ลงเครื่องได้เลยครับ</p>
+        <div id="imageContainer"></div>
+    </div>
 
     <script>
         window.onload = function() {
-            // 1. ดึงชื่อผู้เล่นที่บันทึกมาจากหน้าแรก
             var savedName = localStorage.getItem('player_name_shared');
             document.getElementById('displayName').innerText = savedName ? savedName : "ผู้เข้าร่วมกิจกรรม";
 
-            // 2. ดึงค่าเลขด่านจาก URL ปลายทาง เช่น ?stage=1
             const urlParams = new URLSearchParams(window.location.search);
             const stage = urlParams.get('stage');
             
-            // ตั้งค่ารูปเริ่มต้นเผื่อดึงข้อมูลด่านไม่ได้
             var bgImage = 'bg1.png'; 
-
-            // 3. ตรวจสอบเลขด่านเพื่อเปลี่ยนรูปภาพ (อิงตามชื่อไฟล์รูปภาพที่คุณอัปโหลดไว้บน GitHub)
             if (stage === '1') bgImage = 'bg1.png';
             if (stage === '2') bgImage = 'bg2.png';
             if (stage === '3') bgImage = 'bg3.png';
@@ -75,22 +76,50 @@
             if (stage === '5') bgImage = 'bg5.png';
             if (stage === '6') bgImage = 'bg6.png';
 
-            // แสดงผลรูปพื้นหลังของด่านนั้นๆ
-            document.getElementById('captureArea').style.backgroundImage = "url('" + bgImage + "')";
+            // ดึงรูปแบบระบุว่ามาจากโดเมนเดียวกันเพื่อเลี่ยงปัญหา CORS
+            document.getElementById('captureArea').style.backgroundImage = "url('" + window.location.origin + window.location.pathname.replace('certificate.html', '') + bgImage + "')";
         };
 
-        // ฟังก์ชันแคปหน้าจอแล้วดาวน์โหลดเป็นรูปภาพ (.png)
+        // ฟังก์ชันที่ 1: ดาวน์โหลดอัตโนมัติ (เหมาะสำหรับคอมพิวเตอร์)
         function downloadCertificate() {
             var element = document.getElementById("captureArea");
             html2canvas(element, {
                 useCORS: true,
-                allowTaint: true,
-                scale: 2 // เพิ่มความคมชัดชัดเจนคูณสอง
+                allowTaint: false,
+                scale: 2
             }).then(function(canvas) {
+                var imgData = canvas.toDataURL("image/png");
                 var link = document.createElement('a');
-                link.download = 'certificate.png';
-                link.href = canvas.toDataURL("image/png");
+                link.download = 'certificate_stage.png';
+                link.href = imgData;
+                document.body.appendChild(link);
                 link.click();
+                document.body.removeChild(link);
+            }).catch(function(error) {
+                alert("เกิดข้อผิดพลาดในการสร้างรูปภาพ กรุณาลองใช้ปุ่ม 'แสดงรูปสำหรับมือถือ' แทนนะครับ");
+            });
+        }
+
+        // ฟังก์ชันที่ 2: แปลงเป็นรูปแปะบนจอ (ออกแบบมาแก้ปัญหาระบบบล็อกดาวน์โหลดบนมือถือและ iframe)
+        function generateImageForMobile() {
+            var element = document.getElementById("captureArea");
+            html2canvas(element, {
+                useCORS: true,
+                allowTaint: false,
+                scale: 2
+            }).then(function(canvas) {
+                var imgData = canvas.toDataURL("image/png");
+                var imgElement = document.createElement("img");
+                imgElement.src = imgData;
+                
+                var container = document.getElementById("imageContainer");
+                container.innerHTML = ""; // ล้างรูปเก่า
+                container.appendChild(imgElement);
+                
+                // ซ่อนโซนเก่า แสดงโซนรูปภาพใหม่แทน
+                document.getElementById("captureArea").style.display = "none";
+                document.getElementById("btnZone").style.display = "none";
+                document.getElementById("resultImageZone").style.display = "block";
             });
         }
     </script>
