@@ -7,6 +7,41 @@
         .cert-container { position: relative; width: 100%; max-width: 600px; aspect-ratio: 4 / 3; background-size: cover; background-position: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .name-display { position: absolute; width: 100%; text-align: center; top: 46%; left: 0; font-size: 28px; font-weight: bold; color: #2c3e50; }
         button { margin-top: 15px; padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    @media print {
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .cert-container {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  /* ซ่อนปุ่มกดพิมพ์เวลาสั่งปริ้นหรือเซฟ PDF */
+  button {
+    display: none !important;
+  }
+}
+        /* โค้ดนี้จะทำงานเฉพาะตอนเปิดในมือถือ */
+@media screen and (max-width: 768px) {
+  .cert-container {
+    max-width: 100%; /* ปรับใบประกาศให้พอดีหน้าจอมือถือ */
+    font-size: 14px;  /* ปรับขนาดตัวอักษรลดลงตามสัดส่วนหน้าจอ */
+  }
+  .player-name-display {
+    font-size: 18px; /* ปรับขนาดชื่อบนมือถือไม่ให้ใหญ่เกินไป */
+  }
+}
+
+/* โค้ดบังคับให้ดึงภาพพื้นหลังมาตอนกดพิมพ์/เซฟ PDF (ใส่เพิ่มจากรอบที่แล้ว) */
+@media print {
+  body, .cert-container {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  button {
+    display: none !important; /* ซ่อนปุ่มกดตอนเซฟ PDF */
+  }
+}
     </style>
 </head>
 <body>
