@@ -4,16 +4,16 @@
     <meta charset="utf-8">
     <style>
         body { font-family: 'Sarabun', sans-serif; text-align: center; background: transparent; margin: 0; padding: 10px; }
-        input { width: 80%; padding: 12px; border: 2px solid #7425cf; border-radius: 8px; font-size: 18px; text-align: center; }
-        button { background: #7425cf; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 16px; margin-top: 10px; font-weight: bold; }
+        input { width: 80%; padding: 12px; border: 2px solid #000000; border-radius: 8px; font-size: 18px; text-align: center; }
+        button { background: #000000; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 16px; margin-top: 10px; font-weight: bold; }
         .status { color: green; display: none; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <input type="text" id="nameInput" placeholder="พิมพ์ชื่อ-นามสกุลของคุณที่นี่">
+    <input type="text" id="nameInput" placeholder="โปรดพิมพ์ชื่อคุณ">
     <br>
-    <button onclick="saveName()">ตกลง (บันทึกชื่อ)</button>
-    <div id="status" class="status">✅ บันทึกชื่อเรียบร้อย! กดเริ่มเกมที่ปุ่มของ Genially ได้เลย</div>
+    <button onclick="saveName()">ตกลง </button>
+    <div id="status" class="status">✅ บันทึกชื่อเรียบร้อย! กดเพื่อเริ่มเกม</div>
 
     <script>
         function saveName() {
